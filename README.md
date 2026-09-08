@@ -353,7 +353,42 @@ After stopping our demo with Ctrl+C, its container no longer appears in `docker 
 
 See [listing all containers](https://docs.docker.com/reference/cli/docker/container/ls/#all).
 
-## 15. Command quick reference
+## 15. Start an existing stopped container
+
+First, find our stopped container:
+
+```powershell
+docker ps -a
+```
+
+Look for `understanding-docker` in the `IMAGE` column and `Exited` in `STATUS`. Copy its `CONTAINER ID` or `NAMES` value.
+
+Then run:
+
+```powershell
+docker start CONTAINER_NAME_OR_ID
+```
+
+Replace `CONTAINER_NAME_OR_ID` with that actual value. This command starts the same container again, using its saved startup command and port mapping.
+
+| Command | What it does |
+|---|---|
+| `docker run -p 3000:3000 understanding-docker` | Creates and starts a new container from the image. |
+| `docker start CONTAINER_NAME_OR_ID` | Starts an existing stopped container. |
+
+`docker start` returns control to the terminal while the app runs. Check it with `docker ps`, then open [http://localhost:3000](http://localhost:3000) for our container with the saved `3000:3000` mapping.
+
+To start a stopped container and stay attached to its output instead, use:
+
+```powershell
+docker start -a CONTAINER_NAME_OR_ID
+```
+
+Here, `-a` means **attach**. You can watch the demo's output and use Ctrl+C to stop it. In `docker ps -a`, the same letter means **all**: option meanings depend on the command.
+
+See [docker start](https://docs.docker.com/reference/cli/docker/container/start/).
+
+## 16. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -368,11 +403,13 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `docker run -p 3000:3000 understanding-docker` | Create and start a container with a port mapping. |
 | `docker ps` | List running containers. |
 | `docker ps -a` | List running and stopped containers. |
+| `docker start CONTAINER_NAME_OR_ID` | Start an existing stopped container using its saved settings. |
+| `docker start -a CONTAINER_NAME_OR_ID` | Start a stopped container and attach to its output. |
 | Ctrl+C in the foreground app terminal | Stop the local server or the foreground container demo. |
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 16. Keeping this learning project on GitHub
+## 17. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
