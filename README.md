@@ -1,0 +1,379 @@
+# Learning Docker with Node.js
+
+Step-by-step notes from our Docker lessons, using one small Node.js web server.
+
+## 1. What is Docker?
+
+Docker is a tool for packaging applications and running them in isolated environments called **containers**.
+
+A Node.js application needs its source code, a compatible Node.js runtime, and any application dependencies. Installing these separately on different computers can lead to missing packages or version differences: the familiar "it works on my machine" problem.
+
+Docker lets us package the application and its runtime together into an **image**. Running containers from that image gives the application a consistent environment.
+
+## 2. What are an image and a container?
+
+| Term | Meaning | Our example |
+|---|---|---|
+| Docker | The tool that builds images and manages containers. | We use the `docker` command in the terminal. |
+| Image | A packaged template containing the application, runtime, files, and startup configuration. | `understanding-docker:latest` contains Node.js and `server.js`. |
+| Container | An instance created from an image. Starting it runs the application. | Our Node.js server running inside its own environment. |
+
+An image does not run by itself. A container can be running or stopped.
+
+One image can be used to create multiple containers. Each instance has its own processes and filesystem view.
+
+```text
+                     Node.js app image
+                            |
+                  +---------+---------+
+                  |                   |
+                  v                   v
+             Container 1         Container 2
+             App instance        App instance
+```
+
+## 3. Do we still need the codebase?
+
+Yes. Docker needs our source code when building this application's image.
+
+| What we want to do | What happens to the code |
+|---|---|
+| Build the image | Docker copies the application code into the image. |
+| Run the built image later | The code is already inside the image, so a separate source folder is not required. |
+| Run it on another computer | That computer needs a compatible Docker setup and access to the image. The source files do not need to be copied separately. |
+| Update the application | Edit the source, rebuild the image, and create a new container from the updated image. |
+
+```text
+Source code + Dockerfile
+           |
+           v
+      Build an image
+           |
+           v
+ Image contains a copy of the code
+           |
+           v
+ Create and run a container
+```
+
+The code is still required by the application: it uses the copy inside the image. Editing `server.js` on your computer does not automatically update an existing image or container in this setup.
+
+## 4. Our project
+
+```text
+understanding_docker/
+|-- Dockerfile
+|-- README.md
+`-- server.js
+```
+
+| File | Purpose |
+|---|---|
+| `server.js` | Our small Node.js HTTP server. |
+| `Dockerfile` | Instructions for packaging the server into an image. |
+| `README.md` | The concepts and commands covered in our lessons. |
+
+## 5. Run the Node.js application locally
+
+This is our complete `server.js`:
+
+```javascript
+const http = require("node:http");
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Hello from Node.js!\n");
+});
+
+server.listen(3000, () => {
+  console.log("Server running at http://localhost:3000");
+});
+```
+
+The application uses Node's built-in HTTP module, so we do not need to install any npm packages.
+
+From the project folder, run:
+
+```powershell
+node server.js
+```
+
+This uses **Node.js installed on your computer**. The terminal prints:
+
+```text
+Server running at http://localhost:3000
+```
+
+Open [http://localhost:3000](http://localhost:3000) in a browser. The response is:
+
+```text
+Hello from Node.js!
+```
+
+Press **Ctrl+C** in the terminal to stop this local server before running the container on the same computer port.
+
+## 6. Check that Docker is ready
+
+On this Windows setup, start **Docker Desktop** and wait for its engine to be ready before building or running containers.
+
+These commands help check the setup:
+
+| Command | What it checks |
+|---|---|
+| `node --version` | The Node.js version installed on your computer, used for the local example. |
+| `docker --version` | Whether the Docker command-line tool is available and which version it is. |
+| `docker info` | Whether the command-line tool can communicate with the Docker engine; also shows engine information. |
+
+Having the Docker command installed and having its engine running are separate things. If a Docker command says it cannot connect to the engine, check that Docker Desktop has started successfully.
+
+The container uses the Node.js runtime provided by its image. It does not use the Node.js installation on your computer.
+
+## 7. What is a Dockerfile?
+
+A Dockerfile is a text file containing instructions Docker follows to build an image.
+
+Our file is named `Dockerfile`, without an extension:
+
+```dockerfile
+FROM node:24
+
+WORKDIR /app
+
+COPY server.js .
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
+```
+
+| Instruction | Meaning |
+|---|---|
+| `FROM node:24` | Start from the official Node.js image with Node.js 24 already installed. |
+| `WORKDIR /app` | Create `/app` if needed and make it the working folder inside the image. |
+| `COPY server.js .` | Copy the project's `server.js` into that working folder, producing `/app/server.js`. |
+| `EXPOSE 3000` | Record that the application uses container port 3000. Publishing it to the computer is a separate step. |
+| `CMD ["node", "server.js"]` | Save the default startup command: run `node server.js` when the container starts. |
+
+`CMD` does not start our server during the image build. We do not need `RUN npm install` because this application has no external npm dependencies.
+
+See the [Dockerfile reference](https://docs.docker.com/reference/dockerfile/) and the [official Node.js image](https://hub.docker.com/_/node).
+
+## 8. Why is CMD written as separate strings?
+
+This is **exec form**:
+
+```dockerfile
+CMD ["node", "server.js"]
+```
+
+The first item identifies the program, and the following items supply its arguments:
+
+| Item | Meaning |
+|---|---|
+| `"node"` | The program to execute. |
+| `"server.js"` | The argument telling Node which file to run. |
+
+This is not the correct way to express that command:
+
+```dockerfile
+CMD ["node server.js"]
+```
+
+The array now contains one command string. Docker does not split it at the space into a program and an argument.
+
+You can also write the complete command using **shell form**:
+
+```dockerfile
+CMD node server.js
+```
+
+In shell form, a shell interprets the command. Our Dockerfile uses exec form, which keeps the program and arguments explicit and avoids an extra shell for interpreting them.
+
+See [shell and exec form](https://docs.docker.com/reference/dockerfile/#shell-and-exec-form).
+
+## 9. Build our first image
+
+Open a terminal in the project folder and run:
+
+```powershell
+docker build -t understanding-docker .
+```
+
+This means: **build an image using this folder and name it `understanding-docker`.**
+
+| Part | Meaning |
+|---|---|
+| `docker` | Use the Docker command-line tool. |
+| `build` | Build an image by following a Dockerfile. |
+| `-t` | Assign an image name and optional tag. |
+| `understanding-docker` | The image name we chose. |
+| `.` | Use the current folder as the build context: the files available to the build. |
+
+Docker looks for `Dockerfile` in that folder by default. In our workspace, the current folder is `H:\It_Prep\understanding_docker`.
+
+The name is our choice. This alternative would name the image `my-node-app`:
+
+```powershell
+docker build -t my-node-app .
+```
+
+Our lessons use `understanding-docker` consistently. Because we did not specify a tag after a colon, Docker uses the default tag `latest`:
+
+```text
+understanding-docker:latest
+```
+
+`latest` is a tag label; it does not automatically update the image when we edit code.
+
+On the first build, Docker downloads the required base-image layers. It then creates `/app`, copies `server.js`, and saves the configuration. Later builds can reuse downloaded layers and cached steps when applicable.
+
+The result is an image stored locally in Docker. Building it does not start our application.
+
+See the [build command](https://docs.docker.com/reference/cli/docker/buildx/build/) and [build cache](https://docs.docker.com/build/cache/).
+
+## 10. What does the dot mean in different places?
+
+| Example | Meaning of `.` |
+|---|---|
+| `docker build -t understanding-docker .` | The current folder on your computer, used as the build context. |
+| `COPY server.js .` | The destination working folder inside the image: `/app`, set by `WORKDIR`. |
+
+We also discussed this broader copy instruction:
+
+```dockerfile
+COPY . .
+```
+
+The first dot selects the contents of the build context. The second dot is the destination working folder inside the image. Our actual Dockerfile copies only `server.js`, which is the application file we need.
+
+See [COPY](https://docs.docker.com/reference/dockerfile/#copy).
+
+## 11. See the image we built
+
+```powershell
+docker image ls understanding-docker
+```
+
+This lists local images with the repository name `understanding-docker`.
+
+| Column | Meaning |
+|---|---|
+| `REPOSITORY` | The image name, here `understanding-docker`. |
+| `TAG` | Its tag, here `latest`. |
+| `IMAGE ID` | The image identifier. |
+| `CREATED` | When the image was created. |
+| `SIZE` | The reported image size. |
+
+An image listing does not tell us whether a container is running. For that, we use `docker ps`.
+
+See [docker image ls](https://docs.docker.com/reference/cli/docker/image/ls/).
+
+## 12. Create and run a container
+
+```powershell
+docker run -p 3000:3000 understanding-docker
+```
+
+| Part | Meaning |
+|---|---|
+| `docker run` | Create a new container from an image and start it. |
+| `-p` | Publish a container port through a port on your computer. |
+| `3000:3000` | Map computer port 3000 to container port 3000. |
+| `understanding-docker` | The image used to create the container. With no explicit tag, this refers to `latest`. |
+
+The port order is:
+
+```text
+-p COMPUTER_PORT:CONTAINER_PORT
+```
+
+Docker runs the image's configured command, `node server.js`. Visit [http://localhost:3000](http://localhost:3000) to reach the application:
+
+```text
+Browser
+   |
+   v
+Computer port 3000
+   |
+   v
+Container port 3000
+   |
+   v
+Node.js app -> Hello from Node.js!
+```
+
+`EXPOSE 3000` in the Dockerfile records the intended port. The `-p 3000:3000` option creates the mapping we use from the browser.
+
+This command keeps the terminal attached to the container and displays its output. Press **Ctrl+C** to stop this foreground demo.
+
+Each `docker run` creates a new container. The command does not select an old stopped container to restart.
+
+See [docker run](https://docs.docker.com/reference/cli/docker/container/run/).
+
+## 13. List running containers
+
+Open a second terminal while the app is running, then execute:
+
+```powershell
+docker ps
+```
+
+This shows currently running containers.
+
+| Column | Meaning |
+|---|---|
+| `CONTAINER ID` | An identifier for the container. |
+| `IMAGE` | The image used to create it. |
+| `COMMAND` | The container's startup command, possibly shortened in the display. |
+| `CREATED` | How long ago the container was created. |
+| `STATUS` | Its current state; `Up` means running. |
+| `PORTS` | Container ports and any published port mappings. |
+| `NAMES` | The container's name. Docker generates one when we do not supply a name. |
+
+The image name and container name are separate things. Our image is `understanding-docker`; the container may have a generated name.
+
+See [docker ps](https://docs.docker.com/reference/cli/docker/container/ls/).
+
+## 14. List stopped containers too
+
+```powershell
+docker ps -a
+```
+
+**`-a` means all.** It includes stopped containers as well as running ones.
+
+| Command | What it lists |
+|---|---|
+| `docker ps` | Running containers. |
+| `docker ps -a` | All existing containers, including stopped ones. |
+
+After stopping our demo with Ctrl+C, its container no longer appears in `docker ps`, but it remains visible in `docker ps -a`, usually with an `Exited` status.
+
+**Stopping a container does not delete it.** A stopped container can be started again. Neither stopping it nor listing it removes the image used to create it.
+
+See [listing all containers](https://docs.docker.com/reference/cli/docker/container/ls/#all).
+
+## 15. Command quick reference
+
+Run the project commands from the folder containing `server.js` and `Dockerfile`.
+
+| Command or action | Purpose |
+|---|---|
+| `node --version` | Check the local Node.js version. |
+| `docker --version` | Check the Docker CLI version. |
+| `docker info` | Check engine connectivity and information. |
+| `node server.js` | Run the app using Node.js on your computer. |
+| `docker build -t understanding-docker .` | Build and name the application image. |
+| `docker image ls understanding-docker` | Find the built image locally. |
+| `docker run -p 3000:3000 understanding-docker` | Create and start a container with a port mapping. |
+| `docker ps` | List running containers. |
+| `docker ps -a` | List running and stopped containers. |
+| Ctrl+C in the foreground app terminal | Stop the local server or the foreground container demo. |
+
+The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
+
+## 16. Keeping this learning project on GitHub
+
+Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
+
+GitHub stores the source files and Dockerfile. The image built with `docker build` is stored locally in Docker; pushing a Git commit does not automatically upload that image.
