@@ -420,7 +420,35 @@ Here, **`-f` means follow**. If the application writes nothing new, the display 
 
 See [attaching to container output](https://docs.docker.com/reference/cli/docker/container/attach/) and [docker logs](https://docs.docker.com/reference/cli/docker/container/logs/).
 
-## 17. Command quick reference
+## 17. Stop a running container
+
+In a free terminal, run:
+
+```powershell
+docker stop CONTAINER_NAME_OR_ID
+```
+
+Replace the placeholder with the container's name or ID from `docker ps`. For example, for our container whose ID begins with `e9e2`:
+
+```powershell
+docker stop e9e2
+```
+
+Docker asks the application to stop and waits for it to exit. If it does not exit within the allowed time, Docker stops it forcefully, so the command can take a few seconds.
+
+Confirm the result with:
+
+```powershell
+docker ps -a
+```
+
+The container should show `Exited`. It still exists, and its image remains available. Use `docker start CONTAINER_NAME_OR_ID` when you want to start it again.
+
+Remember that Ctrl+C while watching `docker logs -f` only exits the log viewer. Use `docker stop` to stop the container itself.
+
+See [docker stop](https://docs.docker.com/reference/cli/docker/container/stop/).
+
+## 18. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -437,13 +465,14 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `docker ps -a` | List running and stopped containers. |
 | `docker start CONTAINER_NAME_OR_ID` | Start an existing stopped container using its saved settings. |
 | `docker start -a CONTAINER_NAME_OR_ID` | Start a stopped container and attach to its output. |
+| `docker stop CONTAINER_NAME_OR_ID` | Stop a running container, keeping it available to start again. |
 | `docker logs CONTAINER_NAME_OR_ID` | Read a container's saved logs. |
 | `docker logs -f CONTAINER_NAME_OR_ID` | Read saved logs and follow new output; Ctrl+C exits the viewer. |
 | Ctrl+C in the foreground app terminal | Stop the local server or the foreground container demo. |
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 18. Keeping this learning project on GitHub
+## 19. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
