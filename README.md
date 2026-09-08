@@ -386,9 +386,41 @@ docker start -a CONTAINER_NAME_OR_ID
 
 Here, `-a` means **attach**. You can watch the demo's output and use Ctrl+C to stop it. In `docker ps -a`, the same letter means **all**: option meanings depend on the command.
 
+Attaching displays new output; it does not replay earlier log messages. If the container is already running, this command does not restart the application to produce another startup message.
+
 See [docker start](https://docs.docker.com/reference/cli/docker/container/start/).
 
-## 16. Command quick reference
+## 16. Why can an attached terminal show no logs?
+
+An attached terminal can be quiet while the application is running correctly. In our example, the startup message had already been printed before the terminal attached.
+
+Our server prints this line only when it starts:
+
+```text
+Server running at http://localhost:3000
+```
+
+It does not log each browser request. `res.end("Hello from Node.js!\n")` sends an HTTP response to the browser; it does not print that text in the terminal.
+
+Open a second terminal to check the running container with `docker ps`. To read its saved logs, run:
+
+```powershell
+docker logs CONTAINER_NAME_OR_ID
+```
+
+Replace the placeholder with the container's actual name or ID. You may see several startup messages if the same container has been started multiple times.
+
+To read the saved logs and keep watching for new output, run:
+
+```powershell
+docker logs -f CONTAINER_NAME_OR_ID
+```
+
+Here, **`-f` means follow**. If the application writes nothing new, the display waits. Ctrl+C exits this log viewer while the container keeps running.
+
+See [attaching to container output](https://docs.docker.com/reference/cli/docker/container/attach/) and [docker logs](https://docs.docker.com/reference/cli/docker/container/logs/).
+
+## 17. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -405,11 +437,13 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `docker ps -a` | List running and stopped containers. |
 | `docker start CONTAINER_NAME_OR_ID` | Start an existing stopped container using its saved settings. |
 | `docker start -a CONTAINER_NAME_OR_ID` | Start a stopped container and attach to its output. |
+| `docker logs CONTAINER_NAME_OR_ID` | Read a container's saved logs. |
+| `docker logs -f CONTAINER_NAME_OR_ID` | Read saved logs and follow new output; Ctrl+C exits the viewer. |
 | Ctrl+C in the foreground app terminal | Stop the local server or the foreground container demo. |
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 17. Keeping this learning project on GitHub
+## 18. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
