@@ -521,7 +521,41 @@ Also make sure no other running container is already publishing computer port 30
 
 See [assigning a container name](https://docs.docker.com/reference/cli/docker/container/run/#name---name).
 
-## 20. Command quick reference
+## 20. Remove a container
+
+Stopping and removing are different operations:
+
+| Operation | Result |
+|---|---|
+| `docker stop node-app` | Stops the application, but keeps the container so it can be started again. |
+| `docker rm node-app` | Deletes the stopped container. It cannot be started again. |
+
+Docker normally requires the container to be stopped before removal:
+
+```powershell
+docker stop node-app
+docker rm node-app
+```
+
+Confirm that it has been removed:
+
+```powershell
+docker ps -a
+```
+
+`node-app` should no longer appear. The `understanding-docker` image is not deleted, so you can create a fresh container from it:
+
+```powershell
+docker run -d --name node-app -p 3000:3000 understanding-docker
+```
+
+Removing a container releases its name, which is why `node-app` can now be used again. It also removes that container's writable filesystem changes, configuration, and logs. Data that must survive container removal will later be stored in a volume.
+
+Docker also supports `docker rm -f node-app`, which forcefully stops and removes a running container. Prefer `docker stop` followed by `docker rm` so the application gets a chance to shut down normally.
+
+See [docker rm](https://docs.docker.com/reference/cli/docker/container/rm/).
+
+## 21. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -541,13 +575,14 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `docker start CONTAINER_NAME_OR_ID` | Start an existing stopped container using its saved settings. |
 | `docker start -a CONTAINER_NAME_OR_ID` | Start a stopped container and attach to its output. |
 | `docker stop CONTAINER_NAME_OR_ID` | Stop a running container, keeping it available to start again. |
+| `docker rm CONTAINER_NAME_OR_ID` | Remove a stopped container. |
 | `docker logs CONTAINER_NAME_OR_ID` | Read a container's saved logs. |
 | `docker logs -f CONTAINER_NAME_OR_ID` | Read saved logs and follow new output; Ctrl+C exits the viewer. |
 | Ctrl+C in the foreground app terminal | Stop the local server or the foreground container demo. |
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 21. Keeping this learning project on GitHub
+## 22. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
