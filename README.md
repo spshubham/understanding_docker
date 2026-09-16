@@ -485,7 +485,43 @@ Detached mode changes where the container runs relative to your terminal; closin
 
 See [detached mode in docker run](https://docs.docker.com/reference/cli/docker/container/run/#detach-from-the-container--d---detach).
 
-## 19. Command quick reference
+## 19. Give a container a name
+
+If we do not provide a name, Docker generates one. Use `--name` to choose a clear name yourself:
+
+```powershell
+docker run -d --name node-app -p 3000:3000 understanding-docker
+```
+
+| Part | Meaning |
+|---|---|
+| `-d` | Run the container in the background. |
+| `--name node-app` | Give this new container the name `node-app`. |
+| `-p 3000:3000` | Map computer port 3000 to container port 3000. |
+| `understanding-docker` | Use this image to create the container. |
+
+You can now use `node-app` instead of its container ID:
+
+```powershell
+docker logs node-app
+docker stop node-app
+docker start node-app
+```
+
+The container name and image name serve different purposes:
+
+| Name | What it identifies |
+|---|---|
+| `understanding-docker` | The reusable image. |
+| `node-app` | One container created from that image. |
+
+Container names must be unique in Docker, including among stopped containers. If Docker says `/node-app` is already in use, that container already exists. You can start it with `docker start node-app`; we will learn how to remove containers in the next lesson.
+
+Also make sure no other running container is already publishing computer port 3000.
+
+See [assigning a container name](https://docs.docker.com/reference/cli/docker/container/run/#name---name).
+
+## 20. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -499,6 +535,7 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `docker image ls understanding-docker` | Find the built image locally. |
 | `docker run -p 3000:3000 understanding-docker` | Create and start a container with a port mapping. |
 | `docker run -d -p 3000:3000 understanding-docker` | Create and start a container in the background. |
+| `docker run -d --name node-app -p 3000:3000 understanding-docker` | Create a background container named `node-app`. |
 | `docker ps` | List running containers. |
 | `docker ps -a` | List running and stopped containers. |
 | `docker start CONTAINER_NAME_OR_ID` | Start an existing stopped container using its saved settings. |
@@ -510,7 +547,7 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 20. Keeping this learning project on GitHub
+## 21. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
