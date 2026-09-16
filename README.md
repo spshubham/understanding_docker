@@ -448,7 +448,44 @@ Remember that Ctrl+C while watching `docker logs -f` only exits the log viewer. 
 
 See [docker stop](https://docs.docker.com/reference/cli/docker/container/stop/).
 
-## 18. Command quick reference
+## 18. Run a container in detached mode
+
+So far, `docker run` has kept the terminal attached to the container. To run the container in the background, add `-d`:
+
+```powershell
+docker run -d -p 3000:3000 understanding-docker
+```
+
+| Part | Meaning |
+|---|---|
+| `docker run` | Create and start a new container. |
+| `-d` | Run it in **detached mode**, which means in the background. |
+| `-p 3000:3000` | Map computer port 3000 to container port 3000. |
+| `understanding-docker` | Create the container from this image. |
+
+Docker prints the new container's long ID and immediately returns control to the terminal. The Node.js application continues running in the background.
+
+Check it with:
+
+```powershell
+docker ps
+```
+
+Then open [http://localhost:3000](http://localhost:3000). Because detached mode does not show application output directly, use `docker logs CONTAINER_NAME_OR_ID` when you want to read it.
+
+Only one container can normally publish computer port 3000 at a time. If Docker reports that the port is already allocated, find the container using it with `docker ps` and stop that container before running this command.
+
+Stop the detached container with:
+
+```powershell
+docker stop CONTAINER_NAME_OR_ID
+```
+
+Detached mode changes where the container runs relative to your terminal; closing the terminal does not stop it.
+
+See [detached mode in docker run](https://docs.docker.com/reference/cli/docker/container/run/#detach-from-the-container--d---detach).
+
+## 19. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -461,6 +498,7 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `docker build -t understanding-docker .` | Build and name the application image. |
 | `docker image ls understanding-docker` | Find the built image locally. |
 | `docker run -p 3000:3000 understanding-docker` | Create and start a container with a port mapping. |
+| `docker run -d -p 3000:3000 understanding-docker` | Create and start a container in the background. |
 | `docker ps` | List running containers. |
 | `docker ps -a` | List running and stopped containers. |
 | `docker start CONTAINER_NAME_OR_ID` | Start an existing stopped container using its saved settings. |
@@ -472,7 +510,7 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 19. Keeping this learning project on GitHub
+## 20. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
