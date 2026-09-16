@@ -555,7 +555,54 @@ Docker also supports `docker rm -f node-app`, which forcefully stops and removes
 
 See [docker rm](https://docs.docker.com/reference/cli/docker/container/rm/).
 
-## 21. Command quick reference
+## 21. Remove an image
+
+Use this command to remove our locally built image:
+
+```powershell
+docker image rm understanding-docker
+```
+
+The shorter alias is:
+
+```powershell
+docker rmi understanding-docker
+```
+
+Both commands mean the same thing. Docker interprets the missing tag as `latest`, so this targets `understanding-docker:latest`.
+
+Containers depend on the image from which they were created. If Docker reports that the image is in use, first stop and remove those containers:
+
+```powershell
+docker stop node-app
+docker rm node-app
+docker image rm understanding-docker
+```
+
+Check the result with:
+
+```powershell
+docker image ls
+```
+
+Removing the image from Docker does not delete `Dockerfile`, `server.js`, or any other project file. You can recreate the image at any time:
+
+```powershell
+docker build -t understanding-docker .
+```
+
+The base image `node:24` may remain because it is a separate image and its downloaded layers can be reused in later builds.
+
+| Command | Removes |
+|---|---|
+| `docker rm node-app` | A container created from an image. |
+| `docker image rm understanding-docker` | The locally stored application image. |
+
+This command only affects the image stored in your local Docker engine. It does not delete source code from GitHub or remove an image from an online registry.
+
+See [docker image rm](https://docs.docker.com/reference/cli/docker/image/rm/).
+
+## 22. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -567,6 +614,7 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `node server.js` | Run the app using Node.js on your computer. |
 | `docker build -t understanding-docker .` | Build and name the application image. |
 | `docker image ls understanding-docker` | Find the built image locally. |
+| `docker image rm understanding-docker` | Remove the locally stored application image. |
 | `docker run -p 3000:3000 understanding-docker` | Create and start a container with a port mapping. |
 | `docker run -d -p 3000:3000 understanding-docker` | Create and start a container in the background. |
 | `docker run -d --name node-app -p 3000:3000 understanding-docker` | Create a background container named `node-app`. |
@@ -582,7 +630,7 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 22. Keeping this learning project on GitHub
+## 23. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
