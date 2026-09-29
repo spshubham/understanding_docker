@@ -676,7 +676,64 @@ The difference between `run` and `exec` is:
 
 See [docker exec](https://docs.docker.com/reference/cli/docker/container/exec/).
 
-## 23. Command quick reference
+## 23. Inspect containers and images
+
+`docker inspect` shows detailed information that Docker stores about an object. It is a read-only command: inspecting something does not change it.
+
+Inspect the `node-app` container:
+
+```powershell
+docker container inspect node-app
+```
+
+Docker returns a large JSON document containing information such as:
+
+- Current state: running or stopped
+- Image used to create the container
+- Startup command
+- Port mappings
+- Network settings
+- Working directory
+- Environment variables
+
+Unlike `docker exec`, container inspection also works when the container is stopped.
+
+Use `--format` when you only need one field. In PowerShell, keep the template inside single quotes:
+
+```powershell
+docker container inspect --format '{{.State.Status}}' node-app
+docker container inspect --format '{{.Config.Image}}' node-app
+docker container inspect --format '{{.Config.WorkingDir}}' node-app
+docker container inspect --format '{{json .NetworkSettings.Ports}}' node-app
+```
+
+For our container, these commands show its status, the `understanding-docker` image name, `/app` working directory, and published ports.
+
+Inspect the image separately:
+
+```powershell
+docker image inspect understanding-docker
+```
+
+To view specific image settings:
+
+```powershell
+docker image inspect --format '{{.Config.WorkingDir}}' understanding-docker
+docker image inspect --format '{{json .Config.Cmd}}' understanding-docker
+```
+
+These values come from our Dockerfile and should show `/app` and `["node","server.js"]`.
+
+| Command | Examines |
+|---|---|
+| `docker container inspect node-app` | One container's configuration and current state. |
+| `docker image inspect understanding-docker` | The reusable image's configuration and metadata. |
+
+The general `docker inspect NAME_OR_ID` command also exists, but specifying `container` or `image` makes the intended object type clear.
+
+See [docker inspect](https://docs.docker.com/reference/cli/docker/inspect/), [container inspect](https://docs.docker.com/reference/cli/docker/container/inspect/), and [image inspect](https://docs.docker.com/reference/cli/docker/image/inspect/).
+
+## 24. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -700,13 +757,15 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `docker rm CONTAINER_NAME_OR_ID` | Remove a stopped container. |
 | `docker exec node-app node --version` | Run one command inside the running `node-app` container. |
 | `docker exec -it node-app sh` | Open an interactive shell inside the running container. |
+| `docker container inspect node-app` | Show detailed container configuration and state. |
+| `docker image inspect understanding-docker` | Show detailed image configuration and metadata. |
 | `docker logs CONTAINER_NAME_OR_ID` | Read a container's saved logs. |
 | `docker logs -f CONTAINER_NAME_OR_ID` | Read saved logs and follow new output; Ctrl+C exits the viewer. |
 | Ctrl+C in the foreground app terminal | Stop the local server or the foreground container demo. |
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 24. Keeping this learning project on GitHub
+## 25. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
