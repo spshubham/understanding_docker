@@ -602,7 +602,81 @@ This command only affects the image stored in your local Docker engine. It does 
 
 See [docker image rm](https://docs.docker.com/reference/cli/docker/image/rm/).
 
-## 22. Command quick reference
+## 22. Run commands inside a container with docker exec
+
+`docker exec` starts an additional command inside an **already-running container**. It does not create a new container and does not replace the Node.js server that is already running.
+
+Make sure `node-app` is running:
+
+```powershell
+docker ps
+```
+
+If you removed the container or image in the previous lessons, recreate them first:
+
+```powershell
+docker build -t understanding-docker .
+docker run -d --name node-app -p 3000:3000 understanding-docker
+```
+
+Check the Node.js version inside the container:
+
+```powershell
+docker exec node-app node --version
+```
+
+The command has these parts:
+
+| Part | Meaning |
+|---|---|
+| `docker exec` | Run another command inside a running container. |
+| `node-app` | The container in which the command will run. |
+| `node --version` | The command and argument executed inside that container. |
+
+Try a few more commands:
+
+```powershell
+docker exec node-app pwd
+docker exec node-app ls
+```
+
+`pwd` should display `/app`, because our Dockerfile contains `WORKDIR /app`. The `ls` command should show `server.js`, which the Dockerfile copied into that folder.
+
+To open an interactive shell inside the container, run:
+
+```powershell
+docker exec -it node-app sh
+```
+
+| Option | Meaning |
+|---|---|
+| `-i` | Keep standard input open so you can type commands. |
+| `-t` | Create a terminal-style session. |
+| `sh` | Start a shell inside the container. |
+
+Once inside, try:
+
+```sh
+pwd
+ls
+node --version
+exit
+```
+
+`exit` closes the shell session, but the main Node.js application keeps running.
+
+The difference between `run` and `exec` is:
+
+| Command | Result |
+|---|---|
+| `docker run ... IMAGE` | Creates and starts a new container from an image. |
+| `docker exec ... CONTAINER COMMAND` | Runs another command inside an existing running container. |
+
+`docker exec` works only while the container is running. If `node-app` is stopped, start it with `docker start node-app` before using `exec`.
+
+See [docker exec](https://docs.docker.com/reference/cli/docker/container/exec/).
+
+## 23. Command quick reference
 
 Run the project commands from the folder containing `server.js` and `Dockerfile`.
 
@@ -624,13 +698,15 @@ Run the project commands from the folder containing `server.js` and `Dockerfile`
 | `docker start -a CONTAINER_NAME_OR_ID` | Start a stopped container and attach to its output. |
 | `docker stop CONTAINER_NAME_OR_ID` | Stop a running container, keeping it available to start again. |
 | `docker rm CONTAINER_NAME_OR_ID` | Remove a stopped container. |
+| `docker exec node-app node --version` | Run one command inside the running `node-app` container. |
+| `docker exec -it node-app sh` | Open an interactive shell inside the running container. |
 | `docker logs CONTAINER_NAME_OR_ID` | Read a container's saved logs. |
 | `docker logs -f CONTAINER_NAME_OR_ID` | Read saved logs and follow new output; Ctrl+C exits the viewer. |
 | Ctrl+C in the foreground app terminal | Stop the local server or the foreground container demo. |
 
 The Dockerfile instructions (`FROM`, `WORKDIR`, `COPY`, `EXPOSE`, and `CMD`) belong in the Dockerfile. They are not commands to enter directly into PowerShell.
 
-## 23. Keeping this learning project on GitHub
+## 24. Keeping this learning project on GitHub
 
 Project changes and learning notes are committed and pushed to the `main` branch of [spshubham/understanding_docker](https://github.com/spshubham/understanding_docker).
 
